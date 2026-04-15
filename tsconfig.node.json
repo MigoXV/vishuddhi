@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "noEmit": false,
+    "outDir": "dist-node",
+    "types": ["node"],
+    "jsx": "react-jsx"
+  },
+  "include": ["src/shared", "src/host-core", "src/electron", "src/host-service"],
+  "exclude": ["src/**/*.test.ts"]
+}

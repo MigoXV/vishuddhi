@@ -1,0 +1,54 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "com.ux.denoise";
+option java_outer_classname = "UxDenoiseProto";
+
+option go_package = "ulang.com/denoise;denoise";
+
+package ux_denoise_proto;
+
+service UxDenoise {
+  rpc Denoise(DenoiseRequest) returns (DenoiseResponse) {}
+  rpc StreamingDenoise(stream StreamingDenoiseRequest)
+      returns (stream StreamingDenoiseResponse) {}
+}
+
+message DenoiseRequest {
+  AudioInConfig audio_in_config = 1;
+  AudioOutConfig audio_out_config = 2;
+  bytes audio_in = 3;
+}
+
+message DenoiseResponse { bytes audio_out = 1; }
+
+enum Encoding { 
+  // 默认配置，不会使用
+  AUDIO_ENCODING_UNSPECIFIED = 0;
+  //16bit pcm 
+  LINEAR16 = 1; 
+}
+
+message AudioInConfig {
+  Encoding encoding = 1;
+  uint32 sample_rate_hertz = 2;
+}
+
+message AudioOutConfig {
+  Encoding encoding = 1;
+  uint32 sample_rate_hertz = 2;
+}
+
+message DenoiseConfig {
+  AudioInConfig audio_in_config = 1;
+  AudioOutConfig audio_out_config = 2;
+}
+
+message StreamingDenoiseRequest {
+  oneof type {
+    // 第一个StreamingDenoiseRequest消息必须是config
+    DenoiseConfig config = 1;
+    bytes audio_in = 2;
+  }
+}
+
+message StreamingDenoiseResponse { bytes audio_out = 1; }
