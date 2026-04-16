@@ -7,8 +7,8 @@ import type {
   RunDenoiseOptions,
   RunDenoiseResult,
   SourceEntry,
-} from "@shared/contracts";
-import { DENOISE_SEGMENT_DURATION_SEC } from "@shared/constants";
+} from "../shared/contracts";
+import { DENOISE_SEGMENT_DURATION_SEC } from "../shared/constants";
 
 import {
   deriveResultPath,

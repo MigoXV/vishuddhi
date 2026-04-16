@@ -1,6 +1,6 @@
 import { open, readFile } from "node:fs/promises";
 
-import type { AudioMeta } from "@shared/contracts";
+import type { AudioMeta } from "../shared/contracts";
 
 export interface ParsedWavFile {
   meta: AudioMeta;

@@ -3,13 +3,13 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 
 import { app } from "electron";
 
-import type { AppSettings, BootstrapState } from "@shared/contracts";
+import type { AppSettings, BootstrapState } from "../shared/contracts";
 import {
   DEFAULT_GRPC_ADDRESS,
   DEFAULT_RAW_SAMPLE_RATE,
   DEFAULT_RESULT_HOTKEY,
   DEFAULT_SOURCE_HOTKEY,
-} from "@shared/constants";
+} from "../shared/constants";
 
 interface PersistedState extends BootstrapState {}
 

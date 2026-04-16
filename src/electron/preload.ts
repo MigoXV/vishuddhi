@@ -4,7 +4,7 @@ import type {
   AppSettings,
   HostBridge,
   RunDenoiseOptions,
-} from "@shared/contracts";
+} from "../shared/contracts";
 
 const hostBridge: HostBridge = {
   mode: "electron",

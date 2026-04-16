@@ -3,17 +3,17 @@ import { spawn } from "node:child_process";
 
 import express from "express";
 
-import type { AppSettings, RunDenoiseOptions } from "@shared/contracts";
-import { HOST_SERVICE_PORT } from "@shared/constants";
+import type { AppSettings, RunDenoiseOptions } from "../shared/contracts";
+import { HOST_SERVICE_PORT } from "../shared/constants";
 import {
   buildPreviewWav,
   deriveResultPath,
   loadSourceDocument,
   scanWorkspace,
-} from "@host-core/audio-source";
-import { runBatchDenoise, runDenoiseForSource } from "@host-core/denoise";
-import { testGrpcConnection } from "@host-core/grpc";
-import { readBytes } from "@host-core/wav";
+} from "../host-core/audio-source";
+import { runBatchDenoise, runDenoiseForSource } from "../host-core/denoise";
+import { testGrpcConnection } from "../host-core/grpc";
+import { readBytes } from "../host-core/wav";
 
 import { HostServiceStore } from "./store";
 

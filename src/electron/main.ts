@@ -5,25 +5,36 @@ import {
   BrowserWindow,
   dialog,
   ipcMain,
+  nativeImage,
   protocol,
   shell,
 } from "electron";
 
-import type { AppSettings, RunDenoiseOptions } from "@shared/contracts";
-import { APP_NAME, AUDIO_PROTOCOL } from "@shared/constants";
+import type { AppSettings, RunDenoiseOptions } from "../shared/contracts";
+import { APP_NAME, AUDIO_PROTOCOL } from "../shared/constants";
 import {
   buildPreviewWav,
   deriveResultPath,
   loadSourceDocument,
   scanWorkspace,
-} from "@host-core/audio-source";
-import { runBatchDenoise, runDenoiseForSource } from "@host-core/denoise";
-import { testGrpcConnection } from "@host-core/grpc";
-import { readBytes } from "@host-core/wav";
+} from "../host-core/audio-source";
+import { runBatchDenoise, runDenoiseForSource } from "../host-core/denoise";
+import { testGrpcConnection } from "../host-core/grpc";
+import { readBytes } from "../host-core/wav";
 
 import { SessionStore } from "./store";
 
 const sessionStore = new SessionStore();
+
+// AppImage mounts bundled files as the current user, so the packaged
+// chrome-sandbox helper cannot satisfy Chromium's root-owned setuid check.
+// Disable Chromium sandboxing for packaged Linux builds to avoid startup
+// aborts on systems where the helper cannot be installed with root ownership.
+if (process.platform === "linux" && app.isPackaged) {
+  app.disableHardwareAcceleration();
+  app.commandLine.appendSwitch("no-sandbox");
+  app.commandLine.appendSwitch("ozone-platform", "x11");
+}
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -37,6 +48,15 @@ protocol.registerSchemesAsPrivileged([
   },
 ]);
 
+function resolveWindowIcon() {
+  const iconPath = app.isPackaged
+    ? path.join(process.resourcesPath, "..", "vishuddhi.png")
+    : path.join(app.getAppPath(), "assets", "icon.png");
+  const icon = nativeImage.createFromPath(iconPath);
+
+  return icon.isEmpty() ? undefined : icon;
+}
+
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
     width: 1520,
@@ -45,6 +65,7 @@ function createWindow(): BrowserWindow {
     minHeight: 760,
     backgroundColor: "#f4f2ee",
     title: APP_NAME,
+    icon: resolveWindowIcon(),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
