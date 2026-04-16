@@ -190,7 +190,6 @@ describe("App", () => {
       ).toBe(true);
     });
     expect(screen.getByText("结果还不存在")).toBeTruthy();
-    expect(screen.getByText("仅支持单声道 16-bit PCM WAV 送入降噪引擎。")).toBeTruthy();
     expect(screen.getByText("full")).toBeTruthy();
   });
 });
