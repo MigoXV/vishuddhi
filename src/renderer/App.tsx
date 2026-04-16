@@ -469,7 +469,7 @@ export function App() {
           return;
         }
 
-        disposeTrack(workerClient, previousTrack);
+        replaceTrack(workerClient, previousTrack, nextResultTrack);
         resultTrackRef.current = nextResultTrack;
         setResultTrack(nextResultTrack);
 
@@ -1705,6 +1705,22 @@ function disposeTrack(
 
   workerClient.unloadDocument(track.document.documentId);
   URL.revokeObjectURL(track.blobUrl);
+}
+
+export function replaceTrack(
+  workerClient: SpectrogramWorkerClient,
+  previousTrack: HydratedTrack | null,
+  nextTrack: HydratedTrack,
+): void {
+  if (
+    previousTrack &&
+    previousTrack.document.documentId === nextTrack.document.documentId
+  ) {
+    URL.revokeObjectURL(previousTrack.blobUrl);
+    return;
+  }
+
+  disposeTrack(workerClient, previousTrack);
 }
 
 interface DirectoryNodeProps {

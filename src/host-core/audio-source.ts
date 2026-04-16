@@ -84,6 +84,15 @@ async function readAudioMeta(
   return readRawAudioMeta(filePath, getRawSampleRate(kind, settings));
 }
 
+function createUnavailableAudioMeta(kind: SourceKind, settings: AppSettings): AudioMeta {
+  return {
+    sampleRate: kind === "wav" ? 0 : getRawSampleRate(kind, settings),
+    channelCount: 0,
+    durationSec: 0,
+    bitsPerSample: kind === "wav" ? 0 : 16,
+  };
+}
+
 export async function analyzeSourceFile(
   filePath: string,
   rootPath: string,
@@ -98,19 +107,29 @@ export async function analyzeSourceFile(
     return null;
   }
 
-  const audioMeta = await readAudioMeta(filePath, kind, settings);
   const relativeDir = normalizeRelativeDir(path.relative(rootPath, path.dirname(filePath)));
   const resultPath = deriveResultPath(filePath);
   const hasResult = await fileExists(resultPath);
-  let supported = true;
-  let reason: string | null = null;
+  let audioMeta: AudioMeta;
+  let supported: boolean;
+  let reason: string | null;
 
-  if (
-    kind === "wav" &&
-    (audioMeta.channelCount !== 1 || audioMeta.bitsPerSample !== 16)
-  ) {
+  try {
+    audioMeta = await readAudioMeta(filePath, kind, settings);
+    supported = true;
+    reason = null;
+
+    if (
+      kind === "wav" &&
+      (audioMeta.channelCount !== 1 || audioMeta.bitsPerSample !== 16)
+    ) {
+      supported = false;
+      reason = "仅支持单声道 16-bit PCM WAV 送入降噪引擎。";
+    }
+  } catch (error) {
+    audioMeta = createUnavailableAudioMeta(kind, settings);
     supported = false;
-    reason = "仅支持单声道 16-bit PCM WAV 送入降噪引擎。";
+    reason = error instanceof Error ? error.message : "读取音频元信息失败。";
   }
 
   return {
@@ -141,7 +160,12 @@ async function buildDirectoryTree(
   currentPath: string,
   settings: AppSettings,
 ): Promise<SourceDirectory | null> {
-  const children = await readdir(currentPath, { withFileTypes: true });
+  let children;
+  try {
+    children = await readdir(currentPath, { withFileTypes: true });
+  } catch {
+    return null;
+  }
   const directories: SourceDirectory[] = [];
   const entries: SourceEntry[] = [];
 
@@ -159,7 +183,12 @@ async function buildDirectoryTree(
       continue;
     }
 
-    const analyzed = await analyzeSourceFile(absolutePath, rootPath, settings);
+    let analyzed: SourceEntry | null = null;
+    try {
+      analyzed = await analyzeSourceFile(absolutePath, rootPath, settings);
+    } catch {
+      analyzed = null;
+    }
     if (analyzed) {
       entries.push(analyzed);
     }

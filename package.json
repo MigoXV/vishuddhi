@@ -15,7 +15,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "package:electron": "pnpm build && electron-builder"
+    "package:electron": "pnpm build && electron-builder",
+    "package:linux": "pnpm build && electron-builder --linux AppImage --publish never",
+    "package:win": "pnpm build && electron-builder --win portable --publish never"
   },
   "keywords": [
     "electron",
@@ -59,6 +61,7 @@
   "build": {
     "appId": "com.vishuddhi.app",
     "productName": "Vishuddhi",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
     "files": [
       "dist/**/*",
       "dist-node/**/*",
@@ -67,6 +70,21 @@
     ],
     "directories": {
       "buildResources": "assets"
+    },
+    "linux": {
+      "artifactName": "${productName}-${version}-linux-x64.${ext}",
+      "target": [
+        "AppImage"
+      ],
+      "category": "Utility",
+      "icon": "icon.png"
+    },
+    "win": {
+      "artifactName": "${productName}-${version}-win-x64.${ext}",
+      "target": [
+        "portable"
+      ],
+      "icon": "icon.ico"
     }
   },
   "pnpm": {

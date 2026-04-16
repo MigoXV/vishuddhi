@@ -49,7 +49,7 @@ vi.mock("./SpectrogramPane", () => ({
   ),
 }));
 
-import { App } from "./App";
+import { App, replaceTrack } from "./App";
 
 beforeAll(() => {
   class ResizeObserverMock {
@@ -71,6 +71,11 @@ beforeAll(() => {
     value() {
       return Promise.resolve();
     },
+  });
+
+  Object.defineProperty(URL, "revokeObjectURL", {
+    configurable: true,
+    value: vi.fn(),
   });
 });
 
@@ -115,6 +120,38 @@ function createDocument(): LoadedSourceDocument {
 }
 
 describe("App", () => {
+  it("does not unload the worker document when replacing a result track with the same document id", () => {
+    const unloadDocument = vi.fn();
+    const revokeObjectURL = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    const workerClient = { unloadDocument } as unknown as {
+      unloadDocument(documentId: string): void;
+    };
+    const previousTrack = {
+      document: {
+        documentId: "result:/workspace/sample.pcm",
+        sampleRate: 9600,
+        durationSec: 2,
+      },
+      blobUrl: "blob:previous",
+      workerChannelData: [new Int8Array([1, 2, 3])],
+    };
+    const nextTrack = {
+      document: {
+        documentId: "result:/workspace/sample.pcm",
+        sampleRate: 9600,
+        durationSec: 2,
+      },
+      blobUrl: "blob:next",
+      workerChannelData: [new Int8Array([4, 5, 6])],
+    };
+
+    replaceTrack(workerClient as never, previousTrack, nextTrack);
+
+    expect(unloadDocument).not.toHaveBeenCalled();
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:previous");
+    revokeObjectURL.mockRestore();
+  });
+
   it("shows unsupported state and empty denoised pane", async () => {
     const settings: AppSettings = {
       grpcAddress: "localhost:7860",
