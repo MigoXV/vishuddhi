@@ -8,8 +8,8 @@ import type {
   SourceDirectory,
   SourceEntry,
   SourceKind,
-} from "@shared/contracts";
-import { RESULT_SUFFIX } from "@shared/constants";
+} from "../shared/contracts";
+import { RESULT_SUFFIX } from "../shared/constants";
 
 import { readBytes, readWavFile, readWavMetadata, wrapPcmAsWav } from "./wav";
 

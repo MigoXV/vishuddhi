@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import brandMarkUrl from "../../assets/icon.svg";
 
 import type {
   AppSettings,
@@ -25,7 +26,6 @@ import {
   type SpectrogramDocument,
   type TimeRange,
 } from "./SpectrogramPane";
-import { ThemeSwitch } from "./ThemeSwitch";
 import {
   buildUiThemeStyle,
   resolveUiThemeMode,
@@ -1030,19 +1030,11 @@ export function App() {
       <div className="app-shell">
         <aside className="sidebar">
           <div className="sidebar-header">
-            <div>
-              <p className="eyebrow">离线降噪</p>
-              <h1>Vishuddhi</h1>
-            </div>
-            <div className="sidebar-header-actions">
-              <ThemeSwitch
-                compact
-                value={settings.uiThemePreference}
-                onChange={(nextValue) => void handleThemePreferenceChange(nextValue)}
-              />
-              <button className="ghost-button" onClick={() => setSettingsOpen(true)}>
-                设置
-              </button>
+            <div className="brand-lockup">
+              <img className="brand-mark" src={brandMarkUrl} alt="" aria-hidden="true" />
+              <div className="brand-copy">
+                <h1>Vishuddhi</h1>
+              </div>
             </div>
           </div>
 
@@ -1060,7 +1052,6 @@ export function App() {
             <div className="filter-header">
               <div className="filter-header-copy">
                 <span className="label">文件</span>
-                <span className="filter-count">{statusCounts.all} 个文件</span>
               </div>
             </div>
             <label className="search-field">
@@ -1262,10 +1253,6 @@ export function App() {
               </header>
 
               {documentError ? <div className="error-banner">{documentError}</div> : null}
-              {!selectedEntry.denoiseEligibility.supported && selectedEntry.denoiseEligibility.reason ? (
-                <div className="info-banner">{selectedEntry.denoiseEligibility.reason}</div>
-              ) : null}
-
               <OverviewTimeline
                 durationSec={sourceTrack?.document.durationSec ?? selectedEntry.audioMeta.durationSec}
                 currentTime={currentTime}
@@ -1350,9 +1337,6 @@ export function App() {
                 />
                 <div className="transport-readout">
                   <div className="transport-meta">
-                    <span>
-                      播放源：{playbackMode === "ab" ? `A-B 对比（当前${activePlayback === "source" ? "原始" : "结果"}）` : playbackMode === "source" ? "原始" : "结果"}
-                    </span>
                     <div className="transport-actions">
                       <button
                         className="ghost-button"

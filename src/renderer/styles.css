@@ -133,6 +133,33 @@ button {
   gap: 10px;
 }
 
+.brand-lockup,
+.brand-copy {
+  display: flex;
+}
+
+.brand-lockup {
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.brand-copy {
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.brand-mark {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border-radius: 13px;
+  box-shadow:
+    0 10px 18px rgba(5, 5, 5, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
 .workspace-heading {
   display: flex;
   flex-direction: column;
@@ -946,6 +973,11 @@ button {
   padding: 6px 8px;
   color: var(--text-secondary);
   font-size: 12px;
+}
+
+.help-popover {
+  top: auto;
+  bottom: calc(100% + 8px);
 }
 
 .batch-strategy {

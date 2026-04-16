@@ -15,8 +15,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "package:electron": "pnpm build && electron-builder",
-    "package:linux": "pnpm build && electron-builder --linux AppImage --publish never",
+    "package:electron": "pnpm build && electron-builder && node scripts/patch-linux-appimage.mjs",
+    "package:linux": "pnpm build && electron-builder --linux AppImage --publish never && node scripts/patch-linux-appimage.mjs",
     "package:win": "pnpm build && electron-builder --win portable --publish never"
   },
   "keywords": [
@@ -73,6 +73,11 @@
     },
     "linux": {
       "artifactName": "${productName}-${version}-linux-x64.${ext}",
+      "executableArgs": [
+        "--no-sandbox",
+        "--ozone-platform=x11",
+        "--disable-gpu"
+      ],
       "target": [
         "AppImage"
       ],
