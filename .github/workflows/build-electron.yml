@@ -1,0 +1,104 @@
+name: build-electron
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Linux
+            os: ubuntu-latest
+            package_script: package:linux
+            artifact_name: vishuddhi-linux-x64
+            artifact_path: dist/*.AppImage
+          - label: Windows
+            os: windows-latest
+            package_script: package:win
+            artifact_name: vishuddhi-windows-x64
+            artifact_path: dist/*.exe
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.20.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Build packaged app
+        run: pnpm ${{ matrix.package_script }}
+
+      - name: Upload platform artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_path }}
+          if-no-files-found: error
+
+  release:
+    name: Publish prerelease
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Download packaged artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: vishuddhi-*
+          merge-multiple: true
+          path: release-assets
+
+      - name: Compute release metadata
+        id: metadata
+        shell: bash
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          short_sha="${GITHUB_SHA::7}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "short_sha=${short_sha}" >> "$GITHUB_OUTPUT"
+          echo "tag=main-build-${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "name=Main build ${version} (${short_sha})" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub prerelease
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.metadata.outputs.tag }}
+          name: ${{ steps.metadata.outputs.name }}
+          prerelease: true
+          draft: false
+          generate_release_notes: false
+          files: |
+            release-assets/*.AppImage
+            release-assets/*.exe
