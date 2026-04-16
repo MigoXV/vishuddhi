@@ -108,4 +108,29 @@ describe("scanWorkspace", () => {
     expect(previewBytes.subarray(0, 4).toString("ascii")).toBe("RIFF");
     expect(previewBytes.subarray(8, 12).toString("ascii")).toBe("WAVE");
   });
+
+  it("keeps scanning when a wav file has invalid metadata", async () => {
+    const root = await createWorkspace();
+    const validPcmPath = path.join(root, "valid.pcm");
+    const invalidWavPath = path.join(root, "broken.wav");
+
+    await writeFile(validPcmPath, Buffer.alloc(9600 * 2, 7));
+    await writeFile(invalidWavPath, Buffer.from("not-a-real-wav", "utf8"));
+
+    const tree = await scanWorkspace(root, settings);
+    const entries = flattenEntries(tree);
+
+    expect(entries.map((entry) => path.basename(entry.sourcePath)).sort()).toEqual([
+      "broken.wav",
+      "valid.pcm",
+    ]);
+
+    const invalidEntry = entries.find((entry) => entry.sourcePath === invalidWavPath);
+    expect(invalidEntry?.denoiseEligibility.supported).toBe(false);
+    expect(invalidEntry?.resultStatus).toBe("unsupported");
+    expect(invalidEntry?.denoiseEligibility.reason).toContain("broken.wav");
+
+    const validEntry = entries.find((entry) => entry.sourcePath === validPcmPath);
+    expect(validEntry?.resultStatus).toBe("ready");
+  });
 });
